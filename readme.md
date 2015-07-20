@@ -5,7 +5,7 @@ ENCODER BOARD
 ##PURPOSE
 
 
-The purpose of the program is to connect two Arduino boards thanks to I2C connection; with the master as the reciver and the slave, as sender and measurer of encoders angles and rounds.
+The purpose of the program is to connect two Arduino boards thanks to I2C connection; with the master as the reciver and the slave, as sender and measurer encoders angles and rounds.
 
 ###REQUIREMENT:
 
@@ -26,12 +26,11 @@ The purpose of the program is to connect two Arduino boards thanks to I2C connec
 ##SLAVE BOARD
 
 
-
 **CONFIGURATION:**
 
-In order to set: the values, slave's address and pins; the program helps the user doing the setting process on the serial monitor.
+ to set: number of encoders, resolution, slave's address and pins; the program helps the user doing the setting process on the serial monitor.
 
-Firstly, to access to this mode, the **mode_pin has to be low**.
+Firstly, to access to this mode, the **mode_pin** has to be low.
 
 ``` c++
 if (digitalRead(MODE_PIN) == LOW) {
@@ -41,35 +40,35 @@ EncS.settings_info();
 } 
 ```
 
-Secondly, you have to **write down the settigns** on the serial port:
+Secondly, you have to *write down the settigns* on the serial port:
 
-with those commands you have to **write first the number and then the command letter**.
+with those commands you have to *write first the number and then the command letter*.
 
-* 'n' in order to set the *number of encoders*;
-* 'a' to set the slave's *address*;
-* 'r' to set the *resolution* of every encoders;
-* 'A' ... 'D' in order to set encoder's *a pins*;
-* 'E' ... 'H' in order to set encoder's *b pins*;
-* 'I' ... 'N' in order to set encoder's *x pins*.
+* 'n' in order to set the **number of encoders**;
+* 'a' to set the slave's **address**;
+* 'r' to set the **resolution** of every encoders;
+* 'A' ... 'D' in order to set encoder's **a pins**;
+* 'E' ... 'H' in order to set encoder's **b pins**;
+* 'I' ... 'N' in order to set encoder's **x pins**.
 
-Instead, the commands below **don't need numbers before the letter**.
+Instead, the commands below *don't need numbers before the letter*.
 
 * 'Z' or 'z' to consider or not the index signal;
-* 's' to *save* the settings;
+* 's' to **save** the settings;
 * 'h' to see the values.
 
-**To end** the configuration process you have to **turn high** the **MODE_PIN** and **reset the board**; thanks to the libray **EEPROM** the settings will be rememberd, as long as they have been saved.
+To end the configuration process you have to *turn high* the **MODE_PIN** and *reset the board*; thanks to the libray **EEPROM.h** the settings will be rememberd.
 
 **DEFAULT SETTINGS**
 
-**To reset the settings** with the default values you must **set low the RESET_PIN** , saving in to the EEPROM the values firstly setted up by the constructor method. In this way the settings setted up by the user are overlooked and overwritten by the default settings.
+*To reset the settings* with the default values you must set low the **RESET_PIN** , saving in to the EEPROM the values firstly setted up by the constructor method. In this way the settings setted up by the user are overlooked and overwritten by the default settings.
 
 
 **INTERRUPT AND INDEX**
 
-In order to have an higher precision you can switch on the **index** (`read_index = true`), and connect x channels to the Slave. If the engine has to do lots of rounds, this is the best option with the lower possibility of making mistakes.
+To have an higher precision you can switch on the **index** (`read_index = true`), and connect x channels to the Slave. If the motors have to do lots of rounds, this is the best choice with the lowest possibility of making mistakes.
 
-The code can afford up to 4 pins connected with the x channels and all of them need to be interrupt pins.
+The code can afford up to 4 pins connected with the x channels and all of them have to be interrupt pins.
 
 ```c++
 func_ptr ISRs[] = {index_ISR_0, index_ISR_1, index_ISR_2, index_ISR_3};
@@ -94,7 +93,7 @@ void index_ISR_0() {
 
 **SENDING TO MASTER**
 
-every time the master request, every data inside the struct data_t is sent.
+every time the master requests, every data inside the struct data_t is sent.
 
 ```c++
 void requestEvent() { 
@@ -138,7 +137,7 @@ void EncoderSlave::set(int reset_pin, int mode_pin) {
 * **default_settings():** it sets the default settings
 
 
-* **read(int res_mult, int com_mult):** it reads the value from every encoder and write it in the appropriate variables;
+* **read(int res_mult, int com_mult):** it reads the value from every encoder;
 
 ```c++
 void EncoderSlave::read(int res_mult, int com_mult) {  
@@ -159,10 +158,12 @@ In this library has been used two libraries, ***EEPROM.h*** and ***EncoderMod.h*
 
 ##MASTER BOARD
 
-In the master arduino code has to be included the *Wire.h* library. 
+First of all, in the master arduino code have to be included the *Wire.h* and **EncoderBoard.h** libraries. 
 ##EncodrBoard library
 
-In this library has been included the *arduino.h* library
+###EncodrBoard library
+
+In this library has been included *arduino.h* library
 
 **FUNCTIONS:**
 
@@ -197,8 +198,10 @@ void EncoderBoard::update() {
 
 ##LINKS:
 
-**libraries:**
+**libraries used:**
 
 [encoder library](http://www.pjrc.com/teensy/td_libs_Encoder.html)
+
+[Wire library](https://www.arduino.cc/en/reference/wire)
 
 
