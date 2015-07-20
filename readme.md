@@ -21,6 +21,8 @@ The purpose of the program is to connect two Arduino boards thanks to I2C connec
 * attach the button on the breadboard;
 * connect the encoder/s to the Slave board;
 
+![Alt text](https://github.com/DavideDorigoni/arduino-encoder-board/blob/master/electrical_connections.png?raw=true)
+
 ##SLAVE BOARD
 
 
@@ -199,4 +201,4 @@ void EncoderBoard::update() {
 
 [encoder library](http://www.pjrc.com/teensy/td_libs_Encoder.html)
 
-![Alt text](electrical_connections.png)
+
