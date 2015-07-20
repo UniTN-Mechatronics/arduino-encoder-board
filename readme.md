@@ -5,7 +5,7 @@ ENCODER BOARD
 ##PURPOSE
 
 
-The purpose of the program is to connect two Arduino boards thanks to I2C connection; with the master as the reciver and the slave, as sender and measurer encoders angles and rounds.
+The purpose of the program is to connect two Arduino boards thanks to I2C connection; with the master as the reciver and the slave, as sender. Furthermore, the Slave have to measure encoders angles and rounds.
 
 ###REQUIREMENT:
 
@@ -15,7 +15,7 @@ The purpose of the program is to connect two Arduino boards thanks to I2C connec
 * one or more encoders;
 * two buttons or just two jumpers to simulate the buttons.
 
-###SETTING UP ARDUINO BOARDS:
+###CONNECTIONS:
 
 * connect the Slave's SCL pin with the Master's SCL pin and the Slave's SDA pin with the Master's SDA pin;
 * attach the button on the breadboard;
@@ -137,7 +137,7 @@ void EncoderSlave::set(int reset_pin, int mode_pin) {
 * **default_settings():** it sets the default settings
 
 
-* **read(int res_mult, int com_mult):** it reads the value from every encoder;
+* **read(int res_mult, int com_mult):** it reads the value from every encoder. The first constant typed in read function, is the resolution multiplier (number of impulse for round / resolution), while the second constant is the comunication multiplier.
 
 ```c++
 void EncoderSlave::read(int res_mult, int com_mult) {  
