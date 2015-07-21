@@ -51,6 +51,8 @@ class EncoderSlave {
     settings settings_u;
     data data_u;
     Encoder* encoders = NULL;
+    long* lost_pulses = NULL;
+    long* lost_pulses_b = NULL;
 };
 
 #endif

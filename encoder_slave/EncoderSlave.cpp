@@ -21,8 +21,12 @@ void EncoderSlave::set(int reset_pin, int mode_pin) {
     data_u.data.rounds[i] = 0;
   }
   encoders = new Encoder[settings_u.settings.n];
+  lost_pulses = new long[settings_u.settings.n];
+  lost_pulses_b = new long[settings_u.settings.n];
   for(int i = 0; i < settings_u.settings.n; i++) {
     encoders[i].init(settings_u.settings.a[i], settings_u.settings.b[i]);
+    lost_pulses[i] = 0;
+    lost_pulses_b[i] = 0;
   }
 }
 
