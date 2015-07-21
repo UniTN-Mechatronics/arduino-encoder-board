@@ -109,10 +109,6 @@ void Config() {
         EncS.settings_u.settings.b[2] = buf;
         buf = 0;
         break;         
-      case 'D':
-        EncS.settings_u.settings.a[3] = buf;
-        buf = 0;
-        break; 
       case 'H':
         EncS.settings_u.settings.b[3] = buf;
         buf = 0;

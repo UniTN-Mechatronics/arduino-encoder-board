@@ -5,12 +5,13 @@ ENCODER BOARD (ENGLISH)
 ##PURPOSE
 
 
-The purpose of the program is to connect two Arduino boards thanks to I2C connection; with the master as the reciver and the slave, as sender. Furthermore, the Slave have to measure encoders angles and rounds.
+The purpose is read angles from one or more encoders, attached to an Arduino board, which works as Slave, and send them to another Arduino Board, the master, using the I2C connection.
 
 ###REQUIREMENT:
 
 * two or more arduino boards;
 * jumpers and cables;
+* a led with a resistor;
 * breadboard;
 * one or more encoders;
 * two buttons or just two jumpers to simulate the buttons.
@@ -19,7 +20,7 @@ The purpose of the program is to connect two Arduino boards thanks to I2C connec
 
 * connect the Slave's SCL pin with the Master's SCL pin and the Slave's SDA pin with the Master's SDA pin;
 * connect the Slave's ground to the Master's ground;
-* attach the button on the breadboard;
+* attach the button, the led and the resistor on the breadboard;
 * connect the encoder/s to the Slave board.
 
 ![Alt text](https://github.com/DavideDorigoni/arduino-encoder-board/blob/master/electrical_connections.png?raw=true)
@@ -67,7 +68,7 @@ To end the configuration process you have to *turn high* the **MODE_PIN** and *r
 
 **INTERRUPT AND INDEX**
 
-To have an higher precision you can switch on the **index** (`read_index = true`), and connect x channels to the Slave. If the motors have to do lots of rounds, this is the best choice with the lowest possibility of making mistakes.
+To have an higher precision you can switch on the **index** (`read_index = true`), and connect x channels to the Slave. If the motors have to do lots of rounds, this is the best choice with the lowest possibility of making mistakes. Besides, if the number of pulses lost is more than a threshold, a led will turn on.
 
 The code can afford up to 4 pins connected with the x channels and all of them have to be interrupt pins.
 
@@ -87,8 +88,12 @@ if(EncS.settings_u.settings.read_index == true) {
 
 ```c++
 void index_ISR_0() {
-  EncS.encoders[0].write(EncS.encoders[0].read() - EncS.settings_u.settings.res * RES_MULT);
-  EncS.data_u.data.rounds[0]++;
+  int lost_pulses = encs[0]->read() - settings_u.settings.res * RES_MULT;
+  if(lost_pulses > lost_pulses_th) {
+    digitalWrite(LED_PIN, HIGH);
+  }
+  encs[0]->write(lost_pulses);
+  data_u.data.rounds[0]++; 
 }
 ```
 
@@ -213,13 +218,14 @@ ENCODER BOARD (ITALIANO)
 ##SCOPO
 
 
-Lo scopo del programma è di connettere due o più schede arduino e farle comunicare tramite I2C; con il Master da ricevitore e lo slave come sender. Inoltre, lo slave dovrà occuparsi delle misure di angoli e giri che lette da più encoders.
+Lo scopo è di leggere gli angoli da uno o più encoders collegati ad una scheda Arduino, che funge da Slave, e mandare le misure ad un'altra scheda Arduino, il master, tramite connessione I2C.
 
 ###REQUISITI:
 
 * due o più schede arduino;
 * jumpers e cavi;
 * breadboard;
+* un LED e una resistenza;
 * uno o più encoders;
 * due pulsanti o in alternativa due jumpers che ne simulino il comportamento.
 
@@ -227,7 +233,7 @@ Lo scopo del programma è di connettere due o più schede arduino e farle comuni
 
 * connettere il pin SCL dello Slave a quello del master e allo stesso modo connettere il pin SDA dello Slave a quello del Master;
 * connettere la massa dello Slave con quella del Master;
-* attaccare i pulsanti alla breadboard;
+* attaccare i pulsanti, il LED e la resistenza alla breadboard;
 * connettere il/gli encoder allo Slave.
 
 ![Alt text](https://github.com/DavideDorigoni/arduino-encoder-board/blob/master/electrical_connections.png?raw=true)
@@ -274,7 +280,7 @@ Per finire il processo di configurazione, bisogna *mettere alto* il **MODE_PIN**
 
 **INTERRUPT E INDICE**
 
-Per avere una maggiore precisione bisogna impostare l' **indice** (`read_index = true`), e connettere i canali x allo Slave. Se il motore compie molti giri, questa è la migliore opzione con la minima possibilità di fare errori.
+Per avere una maggiore precisione bisogna impostare l' **indice** (`read_index = true`), e connettere i canali x allo Slave. Se il motore compie molti giri, questa è la migliore opzione con la minima possibilità di fare errori. Inoltre, se il numero di impulsi persi per giro è maggiore di una certa soglia, il led collegato si accende.
 
 Il programma può supportare al massimo 4 canali x, e quest'ultimi devono essere collegati a pins di interrupt.
 
@@ -320,7 +326,7 @@ EncoderSlave::EncoderSlave(){
 }
 ```
 
-* **set(int reset_pin,int mode_pin):** imposta la resistenza di pullup sui due pin e imposta gli encoders con i valori che trova nella struct settings_t. In più, i valori come l'angolo sono impostati a 0.
+* **set(int reset_pin,int mode_pin):** imposta la resistenza di pullup sui due pin e imposta gli encoders con i valori che trova nella struct settings_t. In più, i valori sono impostati a 0.
 
 ```c++
 void EncoderSlave::set(int reset_pin, int mode_pin) {
