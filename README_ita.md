@@ -18,8 +18,9 @@ Lo scopo del programma è di connettere due o più schede arduino e farle comuni
 ###COLLEGAMENTI:
 
 * connettere il pin SCL dello Slave a quello del master e allo stesso modo connettere il pin SDA dello Slave a quello del Master;
+* connettere la massa dello Slave con quella del Master;
 * attaccare i pulsanti alla breadboard;
-* connettere il/gli encoder allo Slave;
+* connettere il/gli encoder allo Slave.
 
 ![Alt text](https://github.com/DavideDorigoni/arduino-encoder-board/blob/master/electrical_connections.png?raw=true)
 
@@ -111,7 +112,7 @@ EncoderSlave::EncoderSlave(){
 }
 ```
 
-* **set(int reset_pin,int mode_pin):** imposta la resistenza di pullup sui due pin e imposta gli encoders con i valori che trova nella struct settings_t. In più, i valori come l'angolo sono impostati a 0;
+* **set(int reset_pin,int mode_pin):** imposta la resistenza di pullup sui due pin e imposta gli encoders con i valori che trova nella struct settings_t. In più, i valori come l'angolo sono impostati a 0.
 
 ```c++
 void EncoderSlave::set(int reset_pin, int mode_pin) {
@@ -128,16 +129,16 @@ void EncoderSlave::set(int reset_pin, int mode_pin) {
 }
 ```
 
-* **save_to_EEPROM():** salva le impostazioni della EEPROM;
+* **save_to_EEPROM():** salva le impostazioni della EEPROM.
 
 
-* **read_from_EEPROM():** estrapola i valori dalla EEPROM;
+* **read_from_EEPROM():** estrapola i valori dalla EEPROM.
 
 
-* **default_settings():** imposta i valori di default;
+* **default_settings():** imposta i valori di default.
 
 
-* **read(int res_mult, int com_mult):** legge i valori da ogni encoders. la prima costante indica il valore di moltiplicazione che l'encoder ha(impulsi in un giro / risoluzione), mentre la seconda è il motiplicatore che viene usato per facilitare la comunicazione;
+* **read(int res_mult, int com_mult):** legge i valori da ogni encoders. la prima costante indica il valore di moltiplicazione che l'encoder ha(impulsi in un giro / risoluzione), mentre la seconda è il motiplicatore che viene usato per facilitare la comunicazione.
 
 ```c++
 void EncoderSlave::read(int res_mult, int com_mult) {  
@@ -147,7 +148,7 @@ void EncoderSlave::read(int res_mult, int com_mult) {
 }
 ```
 
-* **info():** mostra lo stato delle impostazioni sul monitor;
+* **info():** mostra lo stato delle impostazioni sul monitor.
 
 
 

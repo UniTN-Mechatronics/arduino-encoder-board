@@ -18,8 +18,9 @@ The purpose of the program is to connect two Arduino boards thanks to I2C connec
 ###CONNECTIONS:
 
 * connect the Slave's SCL pin with the Master's SCL pin and the Slave's SDA pin with the Master's SDA pin;
+* connect the Slave's ground to the Master's ground;
 * attach the button on the breadboard;
-* connect the encoder/s to the Slave board;
+* connect the encoder/s to the Slave board.
 
 ![Alt text](https://github.com/DavideDorigoni/arduino-encoder-board/blob/master/electrical_connections.png?raw=true)
 
@@ -137,7 +138,7 @@ void EncoderSlave::set(int reset_pin, int mode_pin) {
 * **default_settings():** it sets the default settings
 
 
-* **read(int res_mult, int com_mult):** it reads the value from every encoder. The first constant typed in read function, is the resolution multiplier (number of impulse for round / resolution), while the second constant is the comunication multiplier.
+* **read(int res_mult, int com_mult):** it reads the value from every encoder. The first constant typed in read function, is the resolution multiplier (number of pulses for round / resolution), while the second constant is the comunication multiplier.
 
 ```c++
 void EncoderSlave::read(int res_mult, int com_mult) {  
