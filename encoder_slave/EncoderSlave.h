@@ -17,6 +17,7 @@ struct settings_t{
   int x[MAX_ENCS]; //pins x
   byte I2C_address; //slave's address
   byte EEPROM_address;
+  int lost_pulses_th;
 };
 
 union settings{ 
@@ -27,8 +28,10 @@ union settings{
 //////////////////////////////////////////////////////////////////////////////////
 
 struct data_t{
-  long angles[4];
-  long rounds[4];
+  long angles[MAX_ENCS];
+  long rounds[MAX_ENCS];
+  double angular_speed[MAX_ENCS];
+
 };
 
 union data{ 
@@ -48,11 +51,14 @@ class EncoderSlave {
     void read(int res_mult, int com_mult);
     void info();
     void settings_info();
+    void speed(int index);
+
     settings settings_u;
     data data_u;
     Encoder* encoders = NULL;
     long* lost_pulses = NULL;
     long* lost_pulses_b = NULL;
+    long t1[MAX_ENCS];
 };
 
 #endif

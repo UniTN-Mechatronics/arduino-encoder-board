@@ -35,6 +35,7 @@ void EncoderSlave::set(int reset_pin, int mode_pin) {
 void EncoderSlave::default_settings() {
    settings_u.settings.n = 1;
    settings_u.settings.res = 2048;
+   settings_u.settings.lost_pulses_th = 40;
 
    settings_u.settings.a[0] = 3;
    settings_u.settings.b[0] = 4;
@@ -91,6 +92,8 @@ of every variable in the settings_t structure */
     Serial.println(settings_u.settings.n);
     Serial.print("RESOLUTION: ");
     Serial.println(settings_u.settings.res);
+    Serial.print("LOST PULSES THRESHOLD: ");
+    Serial.println(settings_u.settings.lost_pulses_th);    
     Serial.print("SLAVE ADDRESS: ");
     Serial.println(settings_u.settings.I2C_address, HEX);
     Serial.print("ENC1 PIN_A: ");
@@ -128,6 +131,7 @@ void EncoderSlave::settings_info() { //prints on the serial port a legen so as t
     Serial.println("'n' at the end in order to set the number of encoders ");
     Serial.println("'a' to set the slave's address");
     Serial.println("'r' to set the resolution of every encoders ");
+    Serial.println("'T' to set the encoder's lost pulses threshold");
     Serial.println("'h' to see the values ");
     Serial.println("A ... D in order to set encoder's a pins");
     Serial.println("E ... H in order to set encoder's b pins");
@@ -137,3 +141,12 @@ void EncoderSlave::settings_info() { //prints on the serial port a legen so as t
 }
 
 //////////////////////////////////////////////////////////////////////////////////
+
+void EncoderSlave::speed(int index) {
+  double dt = (millis() - t1[index]) / 1000.0;
+  t1[index] = millis();
+  data_u.data.angular_speed[index] = 2 * PI / dt;
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+
