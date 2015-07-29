@@ -3,20 +3,31 @@
 #include "EncoderSlave.h"
 
 #define MODE_PIN 8
-#define SERIAL_BAUD 9600
+#define SERIAL_BAUD 115200
 #define RESET_PIN 9
 #define CLOCK_PIN A5
 #define DATA_PIN A4
-#define MAX_EncS 4
 #define RES_MULT 4
 #define COM_MULT 10000
+// #define COM_MULT_SPEED 10
 #define LED_PIN 13
+#define EPS 0.11
+// #define EPS 0.0001
+#define HP 5
+#define HV 6
 
 typedef void (*func_ptr)(void);
 func_ptr state;
 
+long time_i = 0;
+double dt = 0.0001;
+double angle_a = 0;
+double angle_b = 0;
+int go = 0;
 
-EncoderSlave EncS;
+
+EncoderSlave encs;
+DynamicFilter DF;
 func_ptr ISRs[] = {index_ISR_0, index_ISR_1, index_ISR_2, index_ISR_3};
 
 
@@ -26,29 +37,42 @@ func_ptr ISRs[] = {index_ISR_0, index_ISR_1, index_ISR_2, index_ISR_3};
 void setup() {
   Serial.begin(SERIAL_BAUD);
   pinMode(LED_PIN, OUTPUT);
+  pinMode(RESET_PIN, INPUT_PULLUP); //RESET_PIN and MODE_PIN work with pullup resistence
+  pinMode(MODE_PIN, INPUT_PULLUP);
+
+  if (digitalRead(RESET_PIN) == LOW) {
+    encs.save_to_EEPROM();  //save every settings on EEPROM 
+  }
+  else {
+    encs.read_from_EEPROM(); //set the seggings setted by the user
+  }
+
+  encs.set();
+
   if (digitalRead(MODE_PIN) == LOW) { //button pressed
-    Serial.begin(SERIAL_BAUD);
+    // Serial.begin(SERIAL_BAUD);
     state = Config;
-    EncS.settings_info(); //view the command list
+    encs.settings_info(); //view the command list
   }
   else {
     state = Run;
   }
     
-  if (digitalRead(RESET_PIN) == LOW) {
-    EncS.save_to_EEPROM();  //save every settings on EEPROM 
-  }
-  else {
-    EncS.read_from_EEPROM(); //set the seggings setted by the user
-  }
-  EncS.set(RESET_PIN, MODE_PIN);
-  if(EncS.settings_u.settings.read_index == true) {
-    for( int i = 0; i < EncS.settings_u.settings.n; i++) {
-      attachInterrupt(digitalPinToInterrupt(EncS.settings_u.settings.x[i]), ISRs[i], RISING); 
+
+
+
+  if(encs.settings_u.settings.read_index == true) {
+    for( int i = 0; i < encs.settings_u.settings.n; i++) {
+      attachInterrupt(digitalPinToInterrupt(encs.settings_u.settings.x[i]), ISRs[i], RISING); 
     }
   }
-  Wire.begin(EncS.settings_u.settings.I2C_address);
+  Wire.begin(encs.settings_u.settings.I2C_address);
   Wire.onRequest(requestEvent);
+  for(int i = 0; i < encs.settings_u.settings.n; i++){
+    encs.filters[i].set_eps(EPS);
+    encs.filters[i].set_hv(HV);
+    encs.filters[i].set_hp(HP);
+  }
   /*the comunication is setted between the master Arduino and the slave with an address and whenever the
   * master asks for data, the function "requestEvent" runs
   */ 
@@ -57,14 +81,71 @@ void setup() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void loop() {
+  time_i = micros();
   state(); //state can switch between run and config
+  // delay(10);
+  dt = (micros() - time_i) / 1000000.0; // tempo trascorso dal precedente
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Run() {
-  EncS.read(RES_MULT, COM_MULT); //read the values from the encoders
-  // Serial.println(EncS.lost_pulses[0] - EncS.lost_pulses_b[0]);  
+  encs.read(RES_MULT, COM_MULT);
+  // angle_a = encs.data_u.data.angles[0] / double(COM_MULT) + 2 * PI * encs.data_u.data.rounds[0];  
+  double y;
+  if(encs.settings_u.settings.Speed == true) {
+    for(int i = 0; i < encs.settings_u.settings.n; i++) {
+      encs.filters[i].update(dt, encs.data_u.data.angles[i] / double(COM_MULT) + 2 * PI * encs.data_u.data.rounds[i]);
+      if(encs.settings_u.settings.read_index == true){
+        if(encs.filters[i].get_speed() < encs.settings_u.settings.speed_th_l) {
+          encs.data_u.data.angular_speed[i] = encs.filters[i].get_speed() * COM_MULT_SPEED;
+        }
+        else if(encs.filters[i].get_speed() > encs.settings_u.settings.speed_th_h) {
+          encs.data_u.data.angular_speed[i] = encs.speed_idx[i] * COM_MULT_SPEED;
+        }
+        else {
+          y = (encs.filters[i].get_speed() - encs.settings_u.settings.speed_th_l) / (encs.settings_u.settings.speed_th_h - encs.settings_u.settings.speed_th_l);
+          encs.data_u.data.angular_speed[i] = ((1 - y) * encs.filters[i].get_speed() + y * encs.speed_idx[i]) * COM_MULT_SPEED; 
+        }
+      }
+      else {
+        encs.data_u.data.angular_speed[i] = encs.filters[i].get_speed();
+      }
+    } 
+  }
+
+
+
+
+  Serial.print("#!\t");
+  Serial.print(millis() / 1000.0, 4);
+
+  // Serial.print("\t");
+  // Serial.print(dt, 6);
+
+  // Serial.print("\t");
+  // Serial.print(angle_a, 4);
+
+  Serial.print("\t");
+  Serial.print(encs.filters[0].get_angle(), 4);
+
+  // Serial.print("\t");
+  // Serial.print((angle_a  - angle_b) / dt, 4); 
+
+  Serial.print("\t");
+  Serial.print(encs.speed_idx[0], 4); 
+
+  Serial.print("\t");   
+  Serial.print(encs.filters[0].get_speed(), 4);
+
+  Serial.print("\t");   
+  Serial.print(encs.data_u.data.angular_speed[0] / double(COM_MULT_SPEED), 4);
+
+  Serial.print("\t");   
+  Serial.println(y, 4);
+   // 
+
+  // angle_b = angle_a;
 
 }
 
@@ -80,88 +161,96 @@ void Config() {
         buf = buf * 10 + ch - '0';
         break;
       case 'n': //set the number of encoders
-        EncS.settings_u.settings.n = buf;
+        encs.settings_u.settings.n = buf;
         buf = 0;
         break;
       case 'r': //set the resolution
-        EncS.settings_u.settings.res = buf;
+        encs.settings_u.settings.res = buf;
         buf = 0;
         break;
       case 't': //set the resolution
-        EncS.settings_u.settings.lost_pulses_th = buf;
+        encs.settings_u.settings.lost_pulses_th = buf;
         buf = 0;
         break;
-
       case 'A': //set a pins
-        EncS.settings_u.settings.a[0] = buf;
+        encs.settings_u.settings.a[0] = buf;
         buf = 0;
         break;
       case 'B':
-        EncS.settings_u.settings.a[1] = buf;
+        encs.settings_u.settings.a[1] = buf;
         buf = 0;
         break;
       case 'C':
-        EncS.settings_u.settings.a[2] = buf;
+        encs.settings_u.settings.a[2] = buf;
         buf = 0;
         break;
       case 'D':
-        EncS.settings_u.settings.a[3] = buf;
+        encs.settings_u.settings.a[3] = buf;
         buf = 0;
         break;
 
       case 'E': //set b pins
-        EncS.settings_u.settings.b[0] = buf;
+        encs.settings_u.settings.b[0] = buf;
         buf = 0;
         break;      
       case 'F':
-        EncS.settings_u.settings.b[1] = buf;
+        encs.settings_u.settings.b[1] = buf;
         buf = 0;
         break;          
       case 'G':
-        EncS.settings_u.settings.b[2] = buf;
+        encs.settings_u.settings.b[2] = buf;
         buf = 0;
         break;         
       case 'H':
-        EncS.settings_u.settings.b[3] = buf;
+        encs.settings_u.settings.b[3] = buf;
         buf = 0;
       break; 
-
       case 'I': //set x pins
-        EncS.settings_u.settings.x[0] = buf;
+        encs.settings_u.settings.x[0] = buf;
         buf = 0;
         break;  
       case 'L':
-        EncS.settings_u.settings.x[1] = buf;
+        encs.settings_u.settings.x[1] = buf;
         buf = 0;
         break; 
       case 'M':
-        EncS.settings_u.settings.x[2] = buf;
+        encs.settings_u.settings.x[2] = buf;
         buf = 0;
         break; 
       case 'N':
-        EncS.settings_u.settings.x[3] = buf;
+        encs.settings_u.settings.x[3] = buf;
         buf = 0;
         break;
-
       case 's': //save data 
-        EncS.save_to_EEPROM();
+        encs.save_to_EEPROM();
         buf = 0;
         Serial.println("settings saved ...");
         break;   
       case 'a': //set the slave's address
-        EncS.settings_u.settings.I2C_address = buf;       
+        encs.settings_u.settings.I2C_address = buf;       
         buf = 0;
         break;
       case 'h': //show info
-        EncS.info();       
+        encs.info();       
         buf = 0;
         break;
       case 'Z': //turn the mode read_index on  
-        EncS.settings_u.settings.read_index = true;
+        encs.settings_u.settings.read_index = true;
         break;      
       case 'z': //turn the mode read_index off   
-        EncS.settings_u.settings.read_index = false;
-        break;      
+        encs.settings_u.settings.read_index = !encs.settings_u.settings.read_index;
+        break; 
+      case 'v': //turn the mode read_index off   
+        encs.settings_u.settings.Speed = !encs.settings_u.settings.Speed;
+        break;
+      case 'l': //turn the mode read_index off   
+        encs.settings_u.settings.speed_th_l = buf;
+        buf = 0;
+        break; 
+      case 'k': //turn the mode read_index off   
+        encs.settings_u.settings.speed_th_h = buf;
+        buf = 0;
+        break;       
     }
   }
 }
@@ -169,97 +258,96 @@ void Config() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////    
 
 void index_ISR_0() {
-  EncS.lost_pulses[0] = sign(EncS.encoders[0].read())*(modulo(EncS.encoders[0].read()) - EncS.settings_u.settings.res * RES_MULT);
-  if((modulo(EncS.lost_pulses[0]) > EncS.settings_u.settings.lost_pulses_th) && (EncS.data_u.data.rounds[0] != 0)){
+  encs.lost_pulses[0] = sign(encs.encoders[0].read())*(modulo(encs.encoders[0].read()) - encs.settings_u.settings.res * RES_MULT);
+  if((modulo(encs.lost_pulses[0]) > encs.settings_u.settings.lost_pulses_th) && (encs.data_u.data.rounds[0] != 0)) {
     digitalWrite(LED_PIN, HIGH);
   }
   else digitalWrite(LED_PIN, LOW);
-  if(EncS.data_u.data.rounds[0] == 0){
-    EncS.encoders[0].write(0); 
+  if(encs.data_u.data.rounds[0] == 0) {
+    encs.encoders[0].write(0); 
   }
   else {
-    // EncS.encoders[0].write(0); 
-    EncS.encoders[0].write(EncS.lost_pulses[0] - EncS.lost_pulses_b[0]);
-    EncS.lost_pulses_b[0] = EncS.lost_pulses[0];
+    // encs.encoders[0].write(0); 
+    encs.encoders[0].write(encs.lost_pulses[0] - encs.lost_pulses_b[0]);
+    encs.lost_pulses_b[0] = encs.lost_pulses[0];
     }
-  EncS.data_u.data.rounds[0]++; //every time this function runs,
+  encs.data_u.data.rounds[0]++; //every time this function runs,
   // adds a round and reset to 0 the value on the encoder
-  EncS.speed(0);
-  // Serial.println(EncS.data_u.data.angular_speed[0]);  
+  
+  encs.speed(0, COM_MULT_SPEED);  
+  // Serial.println(encs.data_u.data.angular_speed[0]);
 }
-
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void index_ISR_1() {
-  EncS.lost_pulses[1] = sign(EncS.encoders[1].read())*(modulo(EncS.encoders[1].read()) - EncS.settings_u.settings.res * RES_MULT);
-  if((modulo(EncS.lost_pulses[1]) > EncS.settings_u.settings.lost_pulses_th) && (EncS.data_u.data.rounds[1] != 0)){
+  encs.lost_pulses[1] = sign(encs.encoders[1].read())*(modulo(encs.encoders[1].read()) - encs.settings_u.settings.res * RES_MULT);
+  if((modulo(encs.lost_pulses[1]) > encs.settings_u.settings.lost_pulses_th) && (encs.data_u.data.rounds[1] != 0)){
     digitalWrite(LED_PIN, HIGH);
   }
   else digitalWrite(LED_PIN, LOW);
-  if(EncS.data_u.data.rounds[1] == 0){
-    EncS.encoders[1].write(0); 
+  if(encs.data_u.data.rounds[1] == 0){
+    encs.encoders[1].write(0); 
   }
   else {
-    // EncS.encoders[0].write(0); 
-    EncS.encoders[0].write(EncS.lost_pulses[1] - EncS.lost_pulses_b[1]);
-    EncS.lost_pulses_b[1] = EncS.lost_pulses[1];
+    // encs.encoders[0].write(0); 
+    encs.encoders[0].write(encs.lost_pulses[1] - encs.lost_pulses_b[1]);
+    encs.lost_pulses_b[1] = encs.lost_pulses[1];
     }
-  EncS.data_u.data.rounds[1]++; //every time this function runs,
+  encs.data_u.data.rounds[1]++; //every time this function runs,
   // adds a round and reset to 0 the value on the encoder
-  EncS.speed(1);
-  // Serial.println(EncS.data_u.data.angular_speed[0]);  
+  encs.speed(1, COM_MULT);
+  // Serial.println(encs.data_u.data.angular_speed[0]);  
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void index_ISR_2() {
-  EncS.lost_pulses[2] = sign(EncS.encoders[2].read())*(modulo(EncS.encoders[2].read()) - EncS.settings_u.settings.res * RES_MULT);
-  if((modulo(EncS.lost_pulses[2]) > EncS.settings_u.settings.lost_pulses_th) && (EncS.data_u.data.rounds[2] != 0)){
+  encs.lost_pulses[2] = sign(encs.encoders[2].read())*(modulo(encs.encoders[2].read()) - encs.settings_u.settings.res * RES_MULT);
+  if((modulo(encs.lost_pulses[2]) > encs.settings_u.settings.lost_pulses_th) && (encs.data_u.data.rounds[2] != 0)){
     digitalWrite(LED_PIN, HIGH);
   }
   else digitalWrite(LED_PIN, LOW);
-  if(EncS.data_u.data.rounds[2] == 0){
-    EncS.encoders[2].write(0); 
+  if(encs.data_u.data.rounds[2] == 0){
+    encs.encoders[2].write(0); 
   }
   else {
-    // EncS.encoders[2].write(0); 
-    EncS.encoders[2].write(EncS.lost_pulses[2] - EncS.lost_pulses_b[2]);
-    EncS.lost_pulses_b[2] = EncS.lost_pulses[2];
+    // encs.encoders[2].write(0); 
+    encs.encoders[2].write(encs.lost_pulses[2] - encs.lost_pulses_b[2]);
+    encs.lost_pulses_b[2] = encs.lost_pulses[2];
     }
-  EncS.data_u.data.rounds[2]++; //every time this function runs,
+  encs.data_u.data.rounds[2]++; //every time this function runs,
   // adds a round and reset to 0 the value on the encoder
-  EncS.speed(2);
-  // Serial.println(EncS.data_u.data.angular_speed[2]);  
+  encs.speed(2, COM_MULT);
+  // Serial.println(encs.data_u.data.angular_speed[2]);  
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void index_ISR_3() {
-  EncS.lost_pulses[3] = sign(EncS.encoders[3].read())*(modulo(EncS.encoders[3].read()) - EncS.settings_u.settings.res * RES_MULT);
-  if((modulo(EncS.lost_pulses[3]) > EncS.settings_u.settings.lost_pulses_th) && (EncS.data_u.data.rounds[3] != 0)){
+  encs.lost_pulses[3] = sign(encs.encoders[3].read())*(modulo(encs.encoders[3].read()) - encs.settings_u.settings.res * RES_MULT);
+  if((modulo(encs.lost_pulses[3]) > encs.settings_u.settings.lost_pulses_th) && (encs.data_u.data.rounds[3] != 0)) {
     digitalWrite(LED_PIN, HIGH);
   }
   else digitalWrite(LED_PIN, LOW);
-  if(EncS.data_u.data.rounds[3] == 0){
-    EncS.encoders[3].write(0); 
+  if(encs.data_u.data.rounds[3] == 0) {
+    encs.encoders[3].write(0); 
   }
   else {
-    // EncS.encoders[3].write(0); 
-    EncS.encoders[3].write(EncS.lost_pulses[3] - EncS.lost_pulses_b[3]);
-    EncS.lost_pulses_b[3] = EncS.lost_pulses[3];
+    // encs.encoders[3].write(0); 
+    encs.encoders[3].write(encs.lost_pulses[3] - encs.lost_pulses_b[3]);
+    encs.lost_pulses_b[3] = encs.lost_pulses[3];
     }
-  EncS.data_u.data.rounds[3]++; //every time this function runs,
+  encs.data_u.data.rounds[3]++; //every time this function runs,
   // adds a round and reset to 0 the value on the encoder
-  EncS.speed(3);
-  // Serial.println(EncS.data_u.data.angular_speed[3]);  
+  encs.speed(3,COM_MULT);
+  // Serial.println(encs.data_u.data.angular_speed[3]);  
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void requestEvent() { 
-  Wire.write(EncS.data_u.data_byte, sizeof(data)); //the data are sent to the master
+  Wire.write(encs.data_u.data_byte, sizeof(data)); //the data are sent to the master
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
