@@ -5,7 +5,7 @@ ENCODER BOARD (ENGLISH)
 ##PURPOSE
 
 
-The purpose is read angles and speed from one or more encoders, attached to an Arduino board, which works as Slave, and send them to another Arduino Board, the master, using the I2C connection.
+The purpose is to read angles and speed from one or more encoders, attached to an Arduino board, which works as Slave, and send them to another Arduino Board, the master, using the I2C connection.
 
 ###REQUIREMENT:
 
@@ -27,12 +27,11 @@ The purpose is read angles and speed from one or more encoders, attached to an A
 
 ##SLAVE BOARD
 
-
 **CONFIGURATION:**
 
  to set: number of encoders, resolution, slave's address and pins; the program helps the user doing the setting process on the serial monitor.
 
-Firstly, to access to this mode, the **mode_pin** has to be low.
+Firstly, to access to this mode, the **MODE_PIN** has to be low.
 
 ``` c++
 if (digitalRead(MODE_PIN) == LOW) {
@@ -42,7 +41,7 @@ EncS.settings_info();
 } 
 ```
 
-Secondly, you have to *write down the settigns* on the serial port:
+Secondly, you have to *write down the settings* on the serial port:
 
 with those commands you have to *write first the number and then the command letter*.
 
@@ -67,7 +66,7 @@ To end the configuration process you have to *turn high* the **MODE_PIN** and *r
 
 **DEFAULT SETTINGS**
 
-*To reset the settings* with the default values you must set low the **RESET_PIN** , saving in to the EEPROM the values firstly setted up by the constructor method. In this way the settings setted up by the user are overlooked and overwritten by the default settings.
+*To reset the settings* with the default values you must set low the **RESET_PIN** , saving in to the EEPROM the values earlier setted up by the constructor method. This way the settings setted up by the user are overlooked and overwritten by the default settings.
 
 
 **INTERRUPT AND INDEX**
@@ -110,7 +109,6 @@ void index_ISR_0() {
   encs.speed(0, COM_MULT_SPEED);  
 }
 ```
-In this function the speed is calculated every round as the division between 2*pi-greco and the period.
 
 **SENDING TO MASTER**
 
@@ -121,12 +119,14 @@ void requestEvent() {
   Wire.write(EncS.data_u.data_byte, sizeof(data)); 
 }
 ```
+The data are sent with two multiplication factors (COM_MULT e COM_MULT_SPEED), the first for the angles and the second for the speed; the purpose is to make easier the comunication, avoiding errors and data loss.
+
 
 **SPEED**
 
-If the read_index is true the speed is calculated in two different ways:
+If the read_index is true, the speed will be calculated in two different ways, depending on the velocity value:
 
-* the speed under the low threshold will be filter:
+* if the speed is under the low threshold will be filter:
 
 ```c++
 if(encs.filters[i].get_speed() < encs.settings_u.settings.speed_th_l) {
@@ -134,7 +134,7 @@ if(encs.filters[i].get_speed() < encs.settings_u.settings.speed_th_l) {
 }
 ```
 
-* up the high threshold by the interrupt:
+* if it's up the high threshold,it will be calculated by the function speed in the interrupts:
 
 ```c++
 else if(encs.filters[i].get_speed() > encs.settings_u.settings.speed_th_h) {
@@ -142,18 +142,17 @@ else if(encs.filters[i].get_speed() > encs.settings_u.settings.speed_th_h) {
 }
 ```
 
-* between the low and high threshold, by a math formula witch combine the two measures:
+* if it's between the low and the high threshold, it will be calculated by a math formula which combine the two measures:
 
 ```c++
-else {
   double y = (encs.filters[i].get_speed() - encs.settings_u.settings.speed_th_l) / (encs.settings_u.settings.speed_th_h - encs.settings_u.settings.speed_th_l);
   encs.data_u.data.angular_speed[i] = ((1 - y) * encs.filters[i].get_speed() + y * encs.speed_idx[i]) * COM_MULT_SPEED; 
-}
 ```
 
-if the read_index is false, we use the filter measure of the speed.
+if the read_index is false, we use the filter speed.
 
 ##EncoderSlave library
+
 **FUNCTIONS:**
 
 * **EncoderSlave:** it sets the default settigns.
@@ -203,13 +202,11 @@ void EncoderSlave::set() {
 void EncoderSlave::read(int res_mult, int com_mult) {  
   for(int i = 0; i < settings_u.settings.n; i++) {
     data_u.data.angles[i] = long(encoders[i].read() * 2 * PI * com_mult / float(settings_u.settings.res * res_mult)); 
-    //the values are changed so as to make easier the comunication
   }
 }
 ```
 
 * **info():** it shows the state of the settings on the serial monitor.
-
 
 * **settings_info():** it shows the command list.
 
@@ -221,7 +218,7 @@ t1[index] = micros();
 speed_idx[index] = (2.0 * PI / dt);
 ```
 
-to work, the value of Speed has to be ture.
+to work, the value of **Speed** has to be true.
 
 **FROM THE CLASS DynamicFilter:**
 
@@ -246,13 +243,13 @@ _df_x_dot_p = _df_x_dot;
 
 * **get_speed():** it gives back the private value of _df_x, which is the angle(rad).
 
-In this library has been used two libraries, ***EEPROM.h*** and ***EncoderMod.h***, whitch is ***Encoder.h*** libray with few changes.
+In this library have been used two other libraries: ***EEPROM.h*** and ***EncoderMod.h***, which is ***Encoder.h*** library with few changes.
 
 ##MASTER BOARD
 
-First of all, in the master arduino code have to be included the *Wire.h* and **EncoderBoard.h** libraries. 
+First of all, in the master arduino code have to be included *Wire.h* and **EncoderBoard.h** libraries. 
 
-###EncodrBoard library
+###EncoderBoard library
 
 In this library has been included *arduino.h* library.
 
@@ -276,8 +273,8 @@ _address = address;
 Wire.requestFrom(_address, 128);    // request 128 bytes from slave device 
 int i = 0;
 while(Wire.available()) { // slave may send less than requested
-_data_u.data_byte[i] = (Wire.read()); 
-i++;
+	_data_u.data_byte[i] = (Wire.read()); 
+	i++;
 }
 ```
 
@@ -296,6 +293,8 @@ i++;
 [Wire library](https://www.arduino.cc/en/reference/wire)
 
 
+
+
 ENCODER BOARD (ITALIANO)
 ========================
 
@@ -303,7 +302,7 @@ ENCODER BOARD (ITALIANO)
 ##SCOPO
 
 
-Lo scopo è di leggere gli angoli da uno o più encoders collegati ad una scheda Arduino, che funge da Slave, e mandare le misure ad un'altra scheda Arduino, il master, tramite connessione I2C.
+Lo scopo è di leggere gli angoli e le velocità da uno o più encoders collegati ad una scheda Arduino, che funge da Slave, e mandare le misure ad un'altra scheda Arduino, il master, tramite connessione I2C.
 
 ###REQUISITI:
 
@@ -346,14 +345,18 @@ usando questi comandi bisogna *scrivere prima il numero e poi la lettera* corris
 * 'n' per impostare il**numero di encoders**;
 * 'a' per impostare **l'indirizzo** dello Slave;
 * 'r' per impostare **la risoluzione** di ogni encoders;
+* 'l' per impostare la **soglia bassa della velocità**;
+* 'k' per impostare la **soglia alta della velocità**;
+* 't' per impostare la **soglia massima di impulsi persi**;
 * 'A' ... 'D' per impostare i pins**a**;
 * 'E' ... 'H' per impostare i pins**b**;
 * 'I' ... 'N' per impostare i pins**x**.
 
 Invece, i comandi sottostanti *non necessitano di nessun numero*.
 
-* 'Z' o 'z' per considerare o no l'indice;
+* 'z' per considerare o no l'indice;
 * 's' per **salvare** le impostazioni;
+* 'v' per calcolare o no la **velocità angolare**;
 * 'h' per vedere i valori.
 
 Per finire il processo di configurazione, bisogna *mettere alto* il **MODE_PIN** e *resettare la scheda*; grazie alla libreria **EEPROM.h** le impostazioni verranno ricordate.
@@ -385,8 +388,22 @@ if(EncS.settings_u.settings.read_index == true) {
 
 ```c++
 void index_ISR_0() {
-  EncS.encoders[0].write(EncS.encoders[0].read() - EncS.settings_u.settings.res * RES_MULT);
-  EncS.data_u.data.rounds[0]++;
+  encs.lost_pulses[0] = sign(encs.encoders[0].read())*(modulo(encs.encoders[0].read()) - encs.settings_u.settings.res * RES_MULT);
+  if((modulo(encs.lost_pulses[0]) > encs.settings_u.settings.lost_pulses_th) && (encs.data_u.data.rounds[0] != 0)) {
+    digitalWrite(LED_PIN, HIGH);
+  }
+  else digitalWrite(LED_PIN, LOW);
+  if(encs.data_u.data.rounds[0] == 0) {
+    encs.encoders[0].write(0); 
+  }
+  else {
+    // encs.encoders[0].write(0); 
+    encs.encoders[0].write(encs.lost_pulses[0] - encs.lost_pulses_b[0]);
+    encs.lost_pulses_b[0] = encs.lost_pulses[0];
+    }
+  encs.data_u.data.rounds[0]++; //every time this function runs,
+  // adds a round and reset to 0 the value on the encoder
+  encs.speed(0, COM_MULT_SPEED);  
 }
 ```
 
@@ -399,6 +416,34 @@ void requestEvent() {
   Wire.write(EncS.data_u.data_byte, sizeof(data)); 
 }
 ```
+I dati vengono spediti con due fattori di moltiplicazione (COM_MULT e COM_MULT_SPEED), uno per la velocità e uno per l'angolo; il loro scopo è di fare in modo che durante la trasmissione non vengano persi dati.
+
+**VELOCITA'**
+
+Se il read_index è true, la velocità verrà calcolata in due modi, in base al valore della velocità stessa rispetto le soglie.
+
+* se la velocità è sotto la soglia bassa, verrà filtrata:
+
+```c++
+if(encs.filters[i].get_speed() < encs.settings_u.settings.speed_th_l) {
+    encs.data_u.data.angular_speed[i] = encs.filters[i].get_speed() * COM_MULT_SPEED;
+}
+```
+* se è al di sopra della soglia alta, verrà calcolata dalla funzione speed usata negli interrupts:
+
+```c++
+else if(encs.filters[i].get_speed() > encs.settings_u.settings.speed_th_h) {
+  encs.data_u.data.angular_speed[i] = encs.speed_idx[i] * COM_MULT_SPEED;
+}
+```
+* se è compresa tra, la soglia alta e bassa, sarà calcolata da una formula matematica che combina le due misure:
+
+```c++
+double y = (encs.filters[i].get_speed() - encs.settings_u.settings.speed_th_l) / (encs.settings_u.settings.speed_th_h - encs.settings_u.settings.speed_th_l);
+encs.data_u.data.angular_speed[i] = ((1 - y) * encs.filters[i].get_speed() + y * encs.speed_idx[i]) * COM_MULT_SPEED; 
+```
+mentre se il read_index è falso, viene usata la velocità filtrata
+
 ##EncoderSlave libreria
 
 **FUNZIONI:**
@@ -411,19 +456,26 @@ EncoderSlave::EncoderSlave(){
 }
 ```
 
-* **set(int reset_pin,int mode_pin):** imposta la resistenza di pullup sui due pin e imposta gli encoders con i valori che trova nella struct settings_t. In più, i valori sono impostati a 0.
+* **set(int reset_pin,int mode_pin):** imposta gli encoders con i valori che trova nella struct settings_t e crea nuovi array. In più, i valori sono impostati a 0.
 
 ```c++
-void EncoderSlave::set(int reset_pin, int mode_pin) {
-  pinMode(reset_pin, INPUT_PULLUP); 
-  pinMode(mode_pin, INPUT_PULLUP);
-  for(int i = 0; i < settings_u.settings.n; i++) {  
+void EncoderSlave::set() {
+  for(int i = 0; i < MAX_ENCS; i++) { //sets at 0 four arrays 
     data_u.data.angles[i] = 0;
     data_u.data.rounds[i] = 0;
+    data_u.data.angular_speed[i] = 0;
   }
+
   encoders = new Encoder[settings_u.settings.n];
+  filters = new DynamicFilter[settings_u.settings.n];
+  lost_pulses = new long[settings_u.settings.n];
+  lost_pulses_b = new long[settings_u.settings.n];
+  speed_idx = new double[settings_u.settings.n];
+
   for(int i = 0; i < settings_u.settings.n; i++) {
     encoders[i].init(settings_u.settings.a[i], settings_u.settings.b[i]);
+    lost_pulses[i] = 0;
+    lost_pulses_b[i] = 0;
   }
 }
 ```
@@ -449,9 +501,39 @@ void EncoderSlave::read(int res_mult, int com_mult) {
 
 * **info():** mostra lo stato delle impostazioni sul monitor.
 
-
-
 * **settings_info():** mostra la lista dei comandi sul monitor.
+
+* **speed(int index, int com_mult): ** serve a calcolare la velocità in rad/s nel interrupt.
+
+```c++
+double dt = modulo(micros() - t1[index]) / 1000000.0;
+t1[index] = micros();
+speed_idx[index] = (2.0 * PI / dt);
+```
+per funzionare, il valore di **Speed** deve essere true.
+
+**DALLA CLASSE DynamicFilter:**
+
+* **DynamicFilter:** imposta i valori di default usati nella formula matematica per calcolare la velocità filtrata.
+
+* **set_eps(double value):** permette all'utente di impostare il parametro eps.
+
+* **set_hp(double value):** permette all'utente di impostare il parametro hp. 
+
+* **set_hv(double value):** permette all'utente di impostare il parametro hv.
+
+* **update(double dt, double _x):** contiene la formula matematica per calcolare la velocità angolare(rad/s) e l'anglo(rad).
+
+```c++
+_df_x = _df_x_p + dt*_df_x_dot_p + ((dt*_params_df_hp)/_params_df_eps) *  (_x - _df_x_p);
+_df_x_dot = _df_x_dot_p + ((dt*_params_df_hv) / pow(_params_df_eps, 2)) * (_x - _df_x_p);
+_df_x_p = _df_x;
+_df_x_dot_p = _df_x_dot; 
+```
+
+* **get_speed():** dà di ritorno il valore di _df_x_dot, che equivale alla velocità angolare(rad/s). 
+
+* **get_speed():** dà di ritorno il valore di _df_x, he equivale all'angolo(rad).
 
 In questa libreria sono state usate altre due librerie: ***EEPROM.h*** e ***EncoderMod.h***, la quale è ***Encoder.h*** con qualche modifica.
 
@@ -465,34 +547,34 @@ In questa libreria è stata aggiunta la libreria *arduino.h*.
 
 **FUNZIONI:**
 
-* **EncoderBoard(int address)**: imposta a 0 gli angoli e i giri e acquisisce l'indirizzo dello Slave.
+* **EncoderBoard(int address)**: imposta a 0 gli angoli, giri, velocità angloare e acquisisce l'indirizzo dello Slave.
 
 ```c++
-EncoderBoard::EncoderBoard(int address) {
-  Wire.begin();
-  for(int i = 0; i < ENCS_MAX; i++) {
-    _data_u.data.angles[i] = 0;
-    _data_u.data.rounds[i] = 0;
-  }
-  _address = address;
+Wire.begin();
+for(int i = 0; i < MAX_ENCS; i++) {
+  _data_u.data.angles[i] = 0;
+  _data_u.data.rounds[i] = 0;
+  _data_u.data.angular_speed[i] = 0;
 }
+_address = address;
 ```
 
 * **void update()**: inizia la comunicazione I2C e mette i dati nella struct data_t. 
 
 ```c++
-void EncoderBoard::update() {
-  Wire.requestFrom(_address, 128);    
-  int i = 0;
-  while(Wire.available()) { 
-    _data_u.data_byte[i] = (Wire.read()); 
-    i++;
-  }
+Wire.requestFrom(_address, 128);    
+int i = 0;
+while(Wire.available()) { 
+  _data_u.data_byte[i] = (Wire.read()); 
+  i++;
 }
 ```
 
-* **double get(int index)**: restituisce il valore dell'angolo compiuto dall'encoder specificato dall'indice. 
+* **get(int index)**: restituisce il valore dell'angolo compiuto dall'encoder specificato dall'indice. 
 
+* **get(int index)**: restituisce il valore della velocità angloare dell'encoder specificato dall'indice. 
+
+* **modulo(int value):** dà di ritorno il dato, sempre positivo
 
 ##LINKS:
 
@@ -501,5 +583,3 @@ void EncoderBoard::update() {
 [encoder library](http://www.pjrc.com/teensy/td_libs_Encoder.html)
 
 [Wire library](https://www.arduino.cc/en/reference/wire)
-
-
