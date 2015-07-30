@@ -100,7 +100,6 @@ void index_ISR_0() {
     encs.encoders[0].write(0); 
   }
   else {
-    // encs.encoders[0].write(0); 
     encs.encoders[0].write(encs.lost_pulses[0] - encs.lost_pulses_b[0]);
     encs.lost_pulses_b[0] = encs.lost_pulses[0];
     }
@@ -396,8 +395,7 @@ void index_ISR_0() {
   if(encs.data_u.data.rounds[0] == 0) {
     encs.encoders[0].write(0); 
   }
-  else {
-    // encs.encoders[0].write(0); 
+  else { 
     encs.encoders[0].write(encs.lost_pulses[0] - encs.lost_pulses_b[0]);
     encs.lost_pulses_b[0] = encs.lost_pulses[0];
     }
