@@ -9,10 +9,8 @@
 #define DATA_PIN A4
 #define RES_MULT 4
 #define COM_MULT 10000
-// #define COM_MULT_SPEED 10
 #define LED_PIN 13
 #define EPS 0.11
-// #define EPS 0.0001
 #define HP 5
 #define HV 6
 
@@ -21,9 +19,7 @@ func_ptr state;
 
 long time_i = 0;
 double dt = 0.0001;
-double angle_a = 0;
-double angle_b = 0;
-int go = 0;
+
 
 
 EncoderSlave encs;
@@ -35,7 +31,6 @@ func_ptr ISRs[] = {index_ISR_0, index_ISR_1, index_ISR_2, index_ISR_3};
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void setup() {
-  Serial.begin(SERIAL_BAUD);
   pinMode(LED_PIN, OUTPUT);
   pinMode(RESET_PIN, INPUT_PULLUP); //RESET_PIN and MODE_PIN work with pullup resistence
   pinMode(MODE_PIN, INPUT_PULLUP);
@@ -50,7 +45,7 @@ void setup() {
   encs.set();
 
   if (digitalRead(MODE_PIN) == LOW) { //button pressed
-    // Serial.begin(SERIAL_BAUD);
+    Serial.begin(SERIAL_BAUD);
     state = Config;
     encs.settings_info(); //view the command list
   }
@@ -58,9 +53,6 @@ void setup() {
     state = Run;
   }
     
-
-
-
   if(encs.settings_u.settings.read_index == true) {
     for( int i = 0; i < encs.settings_u.settings.n; i++) {
       attachInterrupt(digitalPinToInterrupt(encs.settings_u.settings.x[i]), ISRs[i], RISING); 
@@ -68,7 +60,7 @@ void setup() {
   }
   Wire.begin(encs.settings_u.settings.I2C_address);
   Wire.onRequest(requestEvent);
-  for(int i = 0; i < encs.settings_u.settings.n; i++){
+  for(int i = 0; i < encs.settings_u.settings.n; i++) {
     encs.filters[i].set_eps(EPS);
     encs.filters[i].set_hv(HV);
     encs.filters[i].set_hp(HP);
@@ -83,20 +75,18 @@ void setup() {
 void loop() {
   time_i = micros();
   state(); //state can switch between run and config
-  // delay(10);
   dt = (micros() - time_i) / 1000000.0; // tempo trascorso dal precedente
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Run() {
-  encs.read(RES_MULT, COM_MULT);
-  // angle_a = encs.data_u.data.angles[0] / double(COM_MULT) + 2 * PI * encs.data_u.data.rounds[0];  
-  double y;
+  encs.read(RES_MULT, COM_MULT);  
+
   if(encs.settings_u.settings.Speed == true) {
     for(int i = 0; i < encs.settings_u.settings.n; i++) {
       encs.filters[i].update(dt, encs.data_u.data.angles[i] / double(COM_MULT) + 2 * PI * encs.data_u.data.rounds[i]);
-      if(encs.settings_u.settings.read_index == true){
+      if(encs.settings_u.settings.read_index == true) {
         if(encs.filters[i].get_speed() < encs.settings_u.settings.speed_th_l) {
           encs.data_u.data.angular_speed[i] = encs.filters[i].get_speed() * COM_MULT_SPEED;
         }
@@ -104,7 +94,7 @@ void Run() {
           encs.data_u.data.angular_speed[i] = encs.speed_idx[i] * COM_MULT_SPEED;
         }
         else {
-          y = (encs.filters[i].get_speed() - encs.settings_u.settings.speed_th_l) / (encs.settings_u.settings.speed_th_h - encs.settings_u.settings.speed_th_l);
+          double y = (encs.filters[i].get_speed() - encs.settings_u.settings.speed_th_l) / (encs.settings_u.settings.speed_th_h - encs.settings_u.settings.speed_th_l);
           encs.data_u.data.angular_speed[i] = ((1 - y) * encs.filters[i].get_speed() + y * encs.speed_idx[i]) * COM_MULT_SPEED; 
         }
       }
@@ -113,40 +103,6 @@ void Run() {
       }
     } 
   }
-
-
-
-
-  Serial.print("#!\t");
-  Serial.print(millis() / 1000.0, 4);
-
-  // Serial.print("\t");
-  // Serial.print(dt, 6);
-
-  // Serial.print("\t");
-  // Serial.print(angle_a, 4);
-
-  Serial.print("\t");
-  Serial.print(encs.filters[0].get_angle(), 4);
-
-  // Serial.print("\t");
-  // Serial.print((angle_a  - angle_b) / dt, 4); 
-
-  Serial.print("\t");
-  Serial.print(encs.speed_idx[0], 4); 
-
-  Serial.print("\t");   
-  Serial.print(encs.filters[0].get_speed(), 4);
-
-  Serial.print("\t");   
-  Serial.print(encs.data_u.data.angular_speed[0] / double(COM_MULT_SPEED), 4);
-
-  Serial.print("\t");   
-  Serial.println(y, 4);
-   // 
-
-  // angle_b = angle_a;
-
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -258,7 +214,7 @@ void Config() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////    
 
 void index_ISR_0() {
-  encs.lost_pulses[0] = sign(encs.encoders[0].read())*(modulo(encs.encoders[0].read()) - encs.settings_u.settings.res * RES_MULT);
+  encs.lost_pulses[0] = sign(encs.encoders[0].read()) * (modulo(encs.encoders[0].read()) - encs.settings_u.settings.res * RES_MULT);
   if((modulo(encs.lost_pulses[0]) > encs.settings_u.settings.lost_pulses_th) && (encs.data_u.data.rounds[0] != 0)) {
     digitalWrite(LED_PIN, HIGH);
   }
@@ -266,66 +222,59 @@ void index_ISR_0() {
   if(encs.data_u.data.rounds[0] == 0) {
     encs.encoders[0].write(0); 
   }
-  else {
-    // encs.encoders[0].write(0); 
+  else { 
     encs.encoders[0].write(encs.lost_pulses[0] - encs.lost_pulses_b[0]);
     encs.lost_pulses_b[0] = encs.lost_pulses[0];
     }
   encs.data_u.data.rounds[0]++; //every time this function runs,
-  // adds a round and reset to 0 the value on the encoder
-  
+  // it adds a round
   encs.speed(0, COM_MULT_SPEED);  
-  // Serial.println(encs.data_u.data.angular_speed[0]);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void index_ISR_1() {
-  encs.lost_pulses[1] = sign(encs.encoders[1].read())*(modulo(encs.encoders[1].read()) - encs.settings_u.settings.res * RES_MULT);
-  if((modulo(encs.lost_pulses[1]) > encs.settings_u.settings.lost_pulses_th) && (encs.data_u.data.rounds[1] != 0)){
+  encs.lost_pulses[1] = sign(encs.encoders[1].read()) * (modulo(encs.encoders[1].read()) - encs.settings_u.settings.res * RES_MULT);
+  if((modulo(encs.lost_pulses[1]) > encs.settings_u.settings.lost_pulses_th) && (encs.data_u.data.rounds[1] != 0)) {
     digitalWrite(LED_PIN, HIGH);
   }
   else digitalWrite(LED_PIN, LOW);
-  if(encs.data_u.data.rounds[1] == 0){
+  if(encs.data_u.data.rounds[1] == 0) {
     encs.encoders[1].write(0); 
   }
-  else {
-    // encs.encoders[0].write(0); 
+  else { 
     encs.encoders[0].write(encs.lost_pulses[1] - encs.lost_pulses_b[1]);
     encs.lost_pulses_b[1] = encs.lost_pulses[1];
     }
   encs.data_u.data.rounds[1]++; //every time this function runs,
-  // adds a round and reset to 0 the value on the encoder
-  encs.speed(1, COM_MULT);
-  // Serial.println(encs.data_u.data.angular_speed[0]);  
+  // it adds a round
+  encs.speed(1, COM_MULT); 
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void index_ISR_2() {
-  encs.lost_pulses[2] = sign(encs.encoders[2].read())*(modulo(encs.encoders[2].read()) - encs.settings_u.settings.res * RES_MULT);
-  if((modulo(encs.lost_pulses[2]) > encs.settings_u.settings.lost_pulses_th) && (encs.data_u.data.rounds[2] != 0)){
+  encs.lost_pulses[2] = sign(encs.encoders[2].read()) * (modulo(encs.encoders[2].read()) - encs.settings_u.settings.res * RES_MULT);
+  if((modulo(encs.lost_pulses[2]) > encs.settings_u.settings.lost_pulses_th) && (encs.data_u.data.rounds[2] != 0)) {
     digitalWrite(LED_PIN, HIGH);
   }
   else digitalWrite(LED_PIN, LOW);
-  if(encs.data_u.data.rounds[2] == 0){
+  if(encs.data_u.data.rounds[2] == 0) {
     encs.encoders[2].write(0); 
   }
   else {
-    // encs.encoders[2].write(0); 
     encs.encoders[2].write(encs.lost_pulses[2] - encs.lost_pulses_b[2]);
     encs.lost_pulses_b[2] = encs.lost_pulses[2];
     }
   encs.data_u.data.rounds[2]++; //every time this function runs,
-  // adds a round and reset to 0 the value on the encoder
+  // it adds a round 
   encs.speed(2, COM_MULT);
-  // Serial.println(encs.data_u.data.angular_speed[2]);  
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void index_ISR_3() {
-  encs.lost_pulses[3] = sign(encs.encoders[3].read())*(modulo(encs.encoders[3].read()) - encs.settings_u.settings.res * RES_MULT);
+  encs.lost_pulses[3] = sign(encs.encoders[3].read()) * (modulo(encs.encoders[3].read()) - encs.settings_u.settings.res * RES_MULT);
   if((modulo(encs.lost_pulses[3]) > encs.settings_u.settings.lost_pulses_th) && (encs.data_u.data.rounds[3] != 0)) {
     digitalWrite(LED_PIN, HIGH);
   }
@@ -339,9 +288,8 @@ void index_ISR_3() {
     encs.lost_pulses_b[3] = encs.lost_pulses[3];
     }
   encs.data_u.data.rounds[3]++; //every time this function runs,
-  // adds a round and reset to 0 the value on the encoder
-  encs.speed(3,COM_MULT);
-  // Serial.println(encs.data_u.data.angular_speed[3]);  
+  // it adds a round 
+  encs.speed(3,COM_MULT);  
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -352,7 +300,7 @@ void requestEvent() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-long modulo(int value){
+long modulo(int value) {
   if(value < 0) {
     return(- value);
   }

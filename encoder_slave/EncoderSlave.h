@@ -32,7 +32,7 @@ class DynamicFilter {
 
 //////////////////////////////////////////////////////////////////////////////////
 
-struct settings_t{
+struct settings_t {
   int n; //number of encoders attached on Arduno
   int res; //resolution
   bool read_index;  //working mode
@@ -41,18 +41,21 @@ struct settings_t{
   int x[4]; //pins x
   byte I2C_address; //slave's address
   byte EEPROM_address;
-  int lost_pulses_th;
+  int lost_pulses_th; //lost pulses threshold
   bool Speed;
-  int speed_th_l;
-  int speed_th_h;
+  int speed_th_l; //speed threshold low
+  int speed_th_h; //speed threshold high
 };
 
-union settings{ 
+union settings { 
   settings_t settings;
   byte settings_byte[sizeof(settings)];
 };
 
 //////////////////////////////////////////////////////////////////////////////////
+/* if the Wire library has setted the parameter BUFFER_LENGTH to 32, the program 
+can send only data up to 32 byte and we can't send everything
+as long; else, the program can send every values as long */
 
 #if BUFFER_LENGTH == 32  
 struct data_t{
@@ -70,11 +73,6 @@ struct data_t{
 #define COM_MULT_SPEED 10000.0
 #endif
 
-// struct data_t{
-//   long angles[MAX_ENCS];
-//   int rounds[MAX_ENCS];
-//   int angular_speed[MAX_ENCS];
-// };
 
 union data{ 
   data_t data;

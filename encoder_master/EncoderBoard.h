@@ -24,11 +24,6 @@ struct data_t{
 #define COM_MULT_SPEED 10000.0
 #endif
 
-// struct data_t{
-//   long angles[MAX_ENCS];
-//   int rounds[MAX_ENCS];
-//   int angular_speed[MAX_ENCS];
-// };
 
 union data{ 
   data_t data;

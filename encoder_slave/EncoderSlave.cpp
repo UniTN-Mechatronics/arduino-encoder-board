@@ -5,7 +5,7 @@
 
 //////////////////////////////////////////////////////////////////////////////////
 
-EncoderSlave::EncoderSlave(){
+EncoderSlave::EncoderSlave() {
    default_settings();
 }
 
@@ -17,16 +17,17 @@ void EncoderSlave::set() {
     data_u.data.rounds[i] = 0;
     data_u.data.angular_speed[i] = 0;
   }
+
   encoders = new Encoder[settings_u.settings.n];
   filters = new DynamicFilter[settings_u.settings.n];
   lost_pulses = new long[settings_u.settings.n];
   lost_pulses_b = new long[settings_u.settings.n];
   speed_idx = new double[settings_u.settings.n];
+
   for(int i = 0; i < settings_u.settings.n; i++) {
     encoders[i].init(settings_u.settings.a[i], settings_u.settings.b[i]);
     lost_pulses[i] = 0;
     lost_pulses_b[i] = 0;
-    
   }
 }
 
@@ -37,11 +38,11 @@ void EncoderSlave::default_settings() {
    settings_u.settings.res = 2048;
    settings_u.settings.lost_pulses_th = 40;
    for(int i = 1; i <= settings_u.settings.n; i++){
-   settings_u.settings.a[i] = 0;
-   settings_u.settings.b[i] = 0;
-   settings_u.settings.x[i] = 0;
-   settings_u.settings.a[0] = 3;
-   settings_u.settings.b[0] = 4;	
+	   settings_u.settings.a[i] = 0;
+	   settings_u.settings.b[i] = 0;
+	   settings_u.settings.x[i] = 0;
+	   settings_u.settings.a[0] = 3;
+	   settings_u.settings.b[0] = 4;	
    }
    settings_u.settings.I2C_address = 0x03;
    settings_u.settings.EEPROM_address = 0x10;
@@ -147,7 +148,6 @@ void EncoderSlave::speed(int index, int com_mult) {
 	if(settings_u.settings.Speed == true) {
 		double dt = modulo(micros() - t1[index]) / 1000000.0;
  		t1[index] = micros();
-		// Serial.println((2.0 * PI / dt) * com_mult);
  		speed_idx[index] = (2.0 * PI / dt);
 	}
 }
@@ -206,7 +206,7 @@ double DynamicFilter::get_angle() {
 
 //////////////////////////////////////////////////////////////////////////////////
 
-long EncoderSlave::modulo(double value){
+long EncoderSlave::modulo(double value) {
   if(value < 0) {
     return(- value);
   }
