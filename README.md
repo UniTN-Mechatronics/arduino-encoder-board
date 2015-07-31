@@ -35,9 +35,9 @@ The purpose is to read angles and speed from one or more encoders, attached to a
 
 ``` c++
 if (digitalRead(MODE_PIN) == LOW) {
-Serial.begin(SERIAL_BAUD);
-state = Config;
-EncS.settings_info(); 
+	Serial.begin(SERIAL_BAUD);
+	state = Config;
+	EncS.settings_info(); 
 } 
 ```
 
@@ -102,7 +102,7 @@ void index_ISR_0() {
   else {
     encs.encoders[0].write(encs.lost_pulses[0] - encs.lost_pulses_b[0]);
     encs.lost_pulses_b[0] = encs.lost_pulses[0];
-    }
+  }
   encs.data_u.data.rounds[0]++; //every time this function runs,
   // adds a round and reset to 0 the value on the encoder
   encs.speed(0, COM_MULT_SPEED);  

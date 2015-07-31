@@ -29,18 +29,18 @@ void EncoderBoard::update() {
 //////////////////////////////////////////////////////////////////////////////////
 
 double EncoderBoard::get(int index) {	
- return modulo(_data_u.data.angles[index] / COM_MULT ) + 2 * PI * _data_u.data.rounds[index];
+  return modulo(_data_u.data.angles[index] / COM_MULT ) + 2 * PI * _data_u.data.rounds[index];
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double EncoderBoard::angular_speed(int index) {	
- return _data_u.data.angular_speed[index] / COM_MULT_SPEED;
+  return _data_u.data.angular_speed[index] / COM_MULT_SPEED;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
  
- double EncoderBoard::modulo(int value) {	
- if(value < 0) return value;
- else return -value;
+double EncoderBoard::modulo(int value) {	
+  if(value < 0) return value;
+  else return -value;
 }

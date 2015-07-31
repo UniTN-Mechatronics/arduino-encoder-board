@@ -20,13 +20,9 @@ func_ptr state;
 long time_i = 0;
 double dt = 0.0001;
 
-
-
 EncoderSlave encs;
 DynamicFilter DF;
 func_ptr ISRs[] = {index_ISR_0, index_ISR_1, index_ISR_2, index_ISR_3};
-
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -36,10 +32,10 @@ void setup() {
   pinMode(MODE_PIN, INPUT_PULLUP);
 
   if (digitalRead(RESET_PIN) == LOW) {
-    encs.save_to_EEPROM();  //save every settings on EEPROM 
+    encs.save_to_EEPROM();  //save settings into the EEPROM 
   }
   else {
-    encs.read_from_EEPROM(); //set the seggings setted by the user
+    encs.read_from_EEPROM(); //set the settings set by the user
   }
 
   encs.set();
@@ -128,7 +124,8 @@ void Config() {
         encs.settings_u.settings.lost_pulses_th = buf;
         buf = 0;
         break;
-      case 'A': //set a pins
+
+      case 'A': //set pins a
         encs.settings_u.settings.a[0] = buf;
         buf = 0;
         break;
@@ -145,7 +142,7 @@ void Config() {
         buf = 0;
         break;
 
-      case 'E': //set b pins
+      case 'E': //set pins b 
         encs.settings_u.settings.b[0] = buf;
         buf = 0;
         break;      
@@ -161,7 +158,8 @@ void Config() {
         encs.settings_u.settings.b[3] = buf;
         buf = 0;
       break; 
-      case 'I': //set x pins
+
+      case 'I': //set pins x
         encs.settings_u.settings.x[0] = buf;
         buf = 0;
         break;  
@@ -177,33 +175,30 @@ void Config() {
         encs.settings_u.settings.x[3] = buf;
         buf = 0;
         break;
-      case 's': //save data 
-        encs.save_to_EEPROM();
+      case 's':   
+        encs.save_to_EEPROM(); //save data
         buf = 0;
         Serial.println("settings saved ...");
         break;   
-      case 'a': //set the slave's address
+      case 'a': //set the address of the Slave
         encs.settings_u.settings.I2C_address = buf;       
         buf = 0;
         break;
-      case 'h': //show info
+      case 'h': 
         encs.info();       
         buf = 0;
-        break;
-      case 'Z': //turn the mode read_index on  
-        encs.settings_u.settings.read_index = true;
-        break;      
-      case 'z': //turn the mode read_index off   
+        break;     
+      case 'z':   
         encs.settings_u.settings.read_index = !encs.settings_u.settings.read_index;
         break; 
-      case 'v': //turn the mode read_index off   
+      case 'v':    
         encs.settings_u.settings.Speed = !encs.settings_u.settings.Speed;
         break;
-      case 'l': //turn the mode read_index off   
+      case 'l':    
         encs.settings_u.settings.speed_th_l = buf;
         buf = 0;
         break; 
-      case 'k': //turn the mode read_index off   
+      case 'k':  
         encs.settings_u.settings.speed_th_h = buf;
         buf = 0;
         break;       
@@ -225,7 +220,7 @@ void index_ISR_0() {
   else { 
     encs.encoders[0].write(encs.lost_pulses[0] - encs.lost_pulses_b[0]);
     encs.lost_pulses_b[0] = encs.lost_pulses[0];
-    }
+  }
   encs.data_u.data.rounds[0]++; //every time this function runs,
   // it adds a round
   encs.speed(0, COM_MULT_SPEED);  
@@ -245,7 +240,7 @@ void index_ISR_1() {
   else { 
     encs.encoders[0].write(encs.lost_pulses[1] - encs.lost_pulses_b[1]);
     encs.lost_pulses_b[1] = encs.lost_pulses[1];
-    }
+  }
   encs.data_u.data.rounds[1]++; //every time this function runs,
   // it adds a round
   encs.speed(1, COM_MULT); 
@@ -265,7 +260,7 @@ void index_ISR_2() {
   else {
     encs.encoders[2].write(encs.lost_pulses[2] - encs.lost_pulses_b[2]);
     encs.lost_pulses_b[2] = encs.lost_pulses[2];
-    }
+  }
   encs.data_u.data.rounds[2]++; //every time this function runs,
   // it adds a round 
   encs.speed(2, COM_MULT);
@@ -286,7 +281,7 @@ void index_ISR_3() {
     // encs.encoders[3].write(0); 
     encs.encoders[3].write(encs.lost_pulses[3] - encs.lost_pulses_b[3]);
     encs.lost_pulses_b[3] = encs.lost_pulses[3];
-    }
+  }
   encs.data_u.data.rounds[3]++; //every time this function runs,
   // it adds a round 
   encs.speed(3,COM_MULT);  
