@@ -570,9 +570,9 @@ while(Wire.available()) {
 
 * **get(int index)**: restituisce il valore dell'angolo compiuto dall'encoder specificato dall'indice. 
 
-* **get(int index)**: restituisce il valore della velocità angloare dell'encoder specificato dall'indice. 
+* **angular_speed(int index)**: restituisce il valore della velocità angloare dell'encoder specificato dall'indice. 
 
-* **modulo(int value):** dà di ritorno il dato, sempre positivo
+* **modulo(int value):** dà di ritorno il dato, sempre positivo.
 
 ##LINKS:
 
