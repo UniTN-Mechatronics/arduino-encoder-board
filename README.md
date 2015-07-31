@@ -18,8 +18,8 @@ The purpose is to read angles and speed from one or more encoders, attached to a
 
 ###CONNECTIONS:
 
-* connect the Slave's SCL pin with the Master's SCL pin and the Slave's SDA pin with the Master's SDA pin;
-* connect the Slave's ground to the Master's ground;
+* connect the SCL pin of the Slave with the SCL pin of the Master and the SDA pin of the Slave with the SDA pin of the Master;
+* connect the Slave ground to the Master ground;
 * attach the button, the led and the resistor on the breadboard;
 * connect the encoder/s to the Slave board.
 
@@ -29,9 +29,9 @@ The purpose is to read angles and speed from one or more encoders, attached to a
 
 **CONFIGURATION:**
 
- to set: number of encoders, resolution, slave's address and pins; the program helps the user doing the setting process on the serial monitor.
+ to set: number of encoders, resolution, address and pins of the Slave; the program helps the user doing the setting process on the serial monitor.
 
-Firstly, to access to this mode, the **MODE_PIN** has to be low.
+1. to access to this mode, the **MODE_PIN** has to be low.
 
 ``` c++
 if (digitalRead(MODE_PIN) == LOW) {
@@ -41,19 +41,19 @@ EncS.settings_info();
 } 
 ```
 
-Secondly, you have to *write down the settings* on the serial port:
+2. you have to *write down the settings* on the serial port:
 
 with those commands you have to *write first the number and then the command letter*.
 
 * 'n' in order to set the **number of encoders**;
-* 'a' to set the slave's **address**;
-* 'r' to set the **resolution** of every encoders;
+* 'a' to set the **address** of the Slave;
+* 'r' to set the **resolution** of each encoder;
 * 'l' to set the **speed low threshold**;
 * 'k' to set the **speed high threshold**;
-* 't' to set the encoder's **lost pulses threshold**;
-* 'A' ... 'D' in order to set encoder's **a pins**;
-* 'E' ... 'H' in order to set encoder's **b pins**;
-* 'I' ... 'N' in order to set encoder's **x pins**.
+* 't' to set the encoder **lost pulses threshold**;
+* 'A' ... 'D' in order to set  **a pins** of the encoders;
+* 'E' ... 'H' in order to set **b pins** of the encoders;
+* 'I' ... 'N' in order to set **x pins** of the encoders.
 
 Instead, the commands below *don't need numbers before the letter*.
 
@@ -66,7 +66,7 @@ To end the configuration process you have to *turn high* the **MODE_PIN** and *r
 
 **DEFAULT SETTINGS**
 
-*To reset the settings* with the default values you must set low the **RESET_PIN** , saving in to the EEPROM the values earlier setted up by the constructor method. This way the settings setted up by the user are overlooked and overwritten by the default settings.
+*To reset settings* with default values, you must set low the **RESET_PIN**. This way the settings set up by the user are overlooked and overwritten by the default settings.
 
 
 **INTERRUPT AND INDEX**
@@ -141,7 +141,7 @@ else if(encs.filters[i].get_speed() > encs.settings_u.settings.speed_th_h) {
 }
 ```
 
-* if it's between the low and the high threshold, it will be calculated by a math formula which combine the two measures:
+* if it's between the low and the high threshold, it will be calculated by a mathematic formula which combine the two measures:
 
 ```c++
   double y = (encs.filters[i].get_speed() - encs.settings_u.settings.speed_th_l) / (encs.settings_u.settings.speed_th_h - encs.settings_u.settings.speed_th_l);
@@ -162,7 +162,7 @@ EncoderSlave::EncoderSlave(){
 }
 ```
 
-* **set(int reset_pin,int mode_pin):** it sets the encoders with the values found in the struct settings_t and create new arrays. Moreover the data variables, such as angles are setted to 0;
+* **set(int reset_pin,int mode_pin):** it sets the encoders with the values found in the struct settings_t and create new arrays. Moreover the data variables, such as angles are set to 0;
 
 ```c++
 void EncoderSlave::set() {
@@ -195,7 +195,7 @@ void EncoderSlave::set() {
 * **default_settings():** it sets the default settings.
 
 
-* **read(int res_mult, int com_mult):** it reads the value from every encoder. The first constant typed in read function, is the resolution multiplier (number of pulses for round / resolution), while the second constant is the comunication multiplier.
+* **read(int res_mult, int com_mult):** it reads the value from each encoder. The first constant typed in read function, is the resolution multiplier (number of pulses for round / resolution), while the second constant is the comunication multiplier.
 
 ```c++
 void EncoderSlave::read(int res_mult, int com_mult) {  
@@ -242,7 +242,7 @@ _df_x_dot_p = _df_x_dot;
 
 * **get_speed():** it gives back the private value of _df_x, which is the angle(rad).
 
-In this library have been used two other libraries: ***EEPROM.h*** and ***EncoderMod.h***, which is ***Encoder.h*** library with few changes.
+In this library two other libraries have been used : ***EEPROM.h*** and ***EncoderMod.h***, which is ***Encoder.h*** library with few changes.
 
 ##MASTER BOARD
 
@@ -250,7 +250,7 @@ First of all, in the master arduino code have to be included *Wire.h* and **Enco
 
 ###EncoderBoard library
 
-In this library has been included *arduino.h* library.
+In this library, *arduino.h* library has been included.
 
 **FUNCTIONS:**
 
@@ -269,7 +269,7 @@ _address = address;
 * **void update()**: it starts the I2C comunication and puts the data in to the data_t struct. 
 
 ```c++
-Wire.requestFrom(_address, 128);    // request 128 bytes from slave device 
+Wire.requestFrom(_address, 128);     
 int i = 0;
 while(Wire.available()) { // slave may send less than requested
 	_data_u.data_byte[i] = (Wire.read()); 
