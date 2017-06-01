@@ -38,7 +38,7 @@ class EncoderBoard {
     void update();
     double get(int index);
     double angular_speed(int index);
-    double modulo(int value);
+    double modulo(double value);
   private:
     data _data_u;
     int _address;
