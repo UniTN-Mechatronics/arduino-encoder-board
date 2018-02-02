@@ -2,12 +2,12 @@ ENCODER BOARD (ENGLISH)
 ========================
 
 
-##PURPOSE
+## PURPOSE
 
 
 The purpose is to read angles and speed from one or more encoders, attached to an Arduino board, which works as Slave, and send them to another Arduino Board, the master, using the I2C connection.
 
-###REQUIREMENT:
+### REQUIREMENT:
 
 * two or more arduino boards;
 * jumpers and cables;
@@ -16,7 +16,7 @@ The purpose is to read angles and speed from one or more encoders, attached to a
 * one or more encoders;
 * two buttons or just two jumpers to simulate the buttons.
 
-###CONNECTIONS:
+### CONNECTIONS:
 
 * connect the SCL pin of the Slave with the SCL pin of the Master and the SDA pin of the Slave with the SDA pin of the Master;
 * connect the Slave ground to the Master ground;
@@ -25,7 +25,7 @@ The purpose is to read angles and speed from one or more encoders, attached to a
 
 ![Alt text](https://github.com/DavideDorigoni/arduino-encoder-board/blob/master/electrical_connections.png?raw=true)
 
-##SLAVE BOARD
+## SLAVE BOARD
 
 **CONFIGURATION:**
 
@@ -244,11 +244,11 @@ _df_x_dot_p = _df_x_dot;
 
 In this library two other libraries have been used : ***EEPROM.h*** and ***EncoderMod.h***, which is ***Encoder.h*** library with few changes.
 
-##MASTER BOARD
+## MASTER BOARD
 
 First of all, in the master arduino code have to be included *Wire.h* and **EncoderBoard.h** libraries. 
 
-###EncoderBoard library
+### EncoderBoard library
 
 In this library, *arduino.h* library has been included.
 
@@ -283,7 +283,7 @@ while(Wire.available()) { // slave may send less than requested
 
 * **modulo(int value):** it gives back the value always positive.
 
-##LINKS:
+## LINKS:
 
 **libraries used:**
 
@@ -298,12 +298,12 @@ ENCODER BOARD (ITALIANO)
 ========================
 
 
-##SCOPO
+## SCOPO
 
 
 Lo scopo è di leggere gli angoli e le velocità da uno o più encoders collegati ad una scheda Arduino, che funge da Slave, e mandare le misure ad un'altra scheda Arduino, il master, tramite connessione I2C.
 
-###REQUISITI:
+### REQUISITI:
 
 * due o più schede arduino;
 * jumpers e cavi;
@@ -312,7 +312,7 @@ Lo scopo è di leggere gli angoli e le velocità da uno o più encoders collegat
 * uno o più encoders;
 * due pulsanti o in alternativa due jumpers che ne simulino il comportamento.
 
-###COLLEGAMENTI:
+### COLLEGAMENTI:
 
 * connettere il pin SCL dello Slave a quello del master e allo stesso modo connettere il pin SDA dello Slave a quello del Master;
 * connettere la massa dello Slave con quella del Master;
@@ -321,7 +321,7 @@ Lo scopo è di leggere gli angoli e le velocità da uno o più encoders collegat
 
 ![Alt text](https://github.com/DavideDorigoni/arduino-encoder-board/blob/master/electrical_connections.png?raw=true)
 
-##SLAVE 
+## SLAVE 
 
 **CONFIGURAZIONE:**
 
@@ -442,7 +442,7 @@ encs.data_u.data.angular_speed[i] = ((1 - y) * encs.filters[i].get_speed() + y *
 ```
 mentre se il read_index è falso, viene usata la velocità filtrata
 
-##EncoderSlave libreria
+## EncoderSlave libreria
 
 **FUNZIONI:**
 
@@ -535,7 +535,7 @@ _df_x_dot_p = _df_x_dot;
 
 In questa libreria sono state usate altre due librerie: ***EEPROM.h*** e ***EncoderMod.h***, la quale è ***Encoder.h*** con qualche modifica.
 
-##MASTER
+## MASTER
 
 Prima di tutto, nel codice deve essere inclusa le librerie *Wire.h* ed **EncoderBoard.h**. 
 
